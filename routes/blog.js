@@ -12,7 +12,8 @@ router.get('/', function (req, res) {
 });
 
 router.get('/posts', async function (req, res) {
-  const posts = await db.getDb().collection('posts').find({}, { title: 1, summary: 1, 'author.name': 1 }).toArray()
+  const posts = await db.getDb().collection('posts').find({})
+    .project({ title: 1, summary: 1, 'author.name': 1 }).toArray()
   res.render('posts-list', { posts: posts });
 });
 
@@ -41,6 +42,17 @@ router.post('/posts', async function (req, res) {
   const result = await db.getDb().collection('posts').insertOne(newPost);
   console.log(result);
   res.redirect('/posts');
+})
+
+router.get('/posts/:id', async function (req, res) {
+  const postId = req.params.id
+  const post = await db.getDb().collection('posts').findOne({ _id: new ObjectId(postId) }, { summary: 0 })
+
+  if (!post) {
+    return res.status(404).render('404')
+  }
+
+  res.render('post-detail', { post: post })
 })
 
 module.exports = router;
